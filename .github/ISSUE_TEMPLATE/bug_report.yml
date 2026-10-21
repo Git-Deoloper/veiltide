@@ -1,0 +1,24 @@
+name: Bug report
+about: Describe a reproducible problem without revealing sensitive text
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "**Never paste real credentials or private logs into a public issue.** Create a fictional reproduction."
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the observed and expected result.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce using fictional data
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser / Node version

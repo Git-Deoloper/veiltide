@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101626">
+  <meta name="description" content="Veiltide helps you remove common secrets and personal identifiers from logs, errors, and config snippets — privately, right in your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Veiltide — Share the context. Keep the secrets.">
+  <meta property="og:description" content="A beautifully simple local-first redaction studio for safer copy and paste. Free and open source.">
+  <meta property="og:image" content="assets/social-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Veiltide — Share the context. Keep the secrets.</title>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Veiltide home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M9 6h23l-8 14 8 14H9l8-14L9 6Z" fill="#EEC5B4"/><path d="M15 6h17l-8 14 8 14H15l8-14-8-14Z" fill="#FF8565"/></svg></span>
+        <span>veiltide<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary navigation">
+        <a href="#how-it-works">How it works</a>
+        <a href="#why-veiltide">Why Veiltide</a>
+        <a class="nav-github" href="https://github.com/Git-Deoloper/veiltide" target="_blank" rel="noopener noreferrer">Open source <span aria-hidden="true">↗</span></a>
+      </nav>
+      <a class="button button-sm button-glow" href="#studio">Open the studio <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="hero-mesh" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="pulse-dot"></span> THE SAFER WAY TO SHARE TEXT</div>
+          <h1 id="hero-heading">Share the context.<br><em>Keep the secrets.</em></h1>
+          <p class="hero-lead">Turn logs, stack traces, and config snippets into something you can share with a little more confidence. No uploads. No accounts. Just a quieter kind of safety net.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#studio">Try the redaction studio <span aria-hidden="true">↗</span></a>
+            <a class="text-link" href="#how-it-works">See how it works <span aria-hidden="true">↓</span></a>
+          </div>
+          <div class="hero-proof" aria-label="Key principles"><span><i aria-hidden="true">✦</i> Runs on your device</span><span><i aria-hidden="true">✦</i> No dependencies</span><span><i aria-hidden="true">✦</i> MIT licensed</span></div>
+        </div>
+        <div class="hero-visual" aria-label="Illustration of redacted credentials in a log file">
+          <div class="orb orb-one"></div><div class="orb orb-two"></div>
+          <div class="illustration-window">
+            <div class="window-top"><span class="window-lights"><b></b><b></b><b></b></span><span>incident-report.log</span><span class="window-safe"><span>●</span> PRIVATE BY DESIGN</span></div>
+            <div class="fake-code" aria-hidden="true">
+              <div><span class="line-no">01</span><span class="syntax-muted">[2026-10-21 09:42:12] INFO</span>  Request failed</div>
+              <div><span class="line-no">02</span><span class="syntax-muted">request_id:</span> 7c4d6e<span class="syntax-muted">…</span></div>
+              <div><span class="line-no">03</span><span class="syntax-muted">endpoint:</span> /v1/messages</div>
+              <div><span class="line-no">04</span><span class="syntax-muted">status:</span> <span class="syntax-orange">401 Unauthorized</span></div>
+              <div><span class="line-no">05</span><span class="syntax-muted">email:</span> <span class="redaction-pill">[EMAIL_1]</span></div>
+              <div><span class="line-no">06</span><span class="syntax-muted">api_key:</span> <span class="redaction-pill">[CREDENTIAL_1]</span></div>
+              <div><span class="line-no">07</span><span class="syntax-muted">client_ip:</span> <span class="redaction-pill">[IP_1]</span></div>
+              <div><span class="line-no">08</span><span class="syntax-muted">retry:</span> false</div>
+            </div>
+            <div class="window-bottom"><span class="green-led"></span> Context preserved <span class="window-divider">/</span> Sensitive patterns replaced <span class="window-right">● local</span></div>
+          </div>
+          <div class="float-note"><span class="float-icon">✳</span><span><strong>Better to share</strong><small>Review before sending</small></span><span class="check-icon">✓</span></div>
+        </div>
+      </section>
+
+      <section class="signal-strip" aria-label="Product highlights"><span>NO CLOUD REQUIRED</span><span class="signal-star">✳</span><span>YOUR TEXT, YOUR DEVICE</span><span class="signal-star">✳</span><span>DESIGNED FOR REAL WORK</span><span class="signal-star">✳</span><span>FREE & OPEN SOURCE</span></section>
+
+      <section id="studio" class="studio-section" aria-labelledby="studio-heading">
+        <div class="section-head">
+          <div><span class="eyebrow light-eyebrow">01 / THE WORKSPACE</span><h2 id="studio-heading">A little privacy<br><em>goes a long way.</em></h2><p>Paste your text, choose what to mask, then inspect the result before copying or downloading. Your content stays inside this tab.</p></div>
+          <div class="privacy-stamp"><span class="stamp-symbol">◈</span><div><strong>ON-DEVICE ENGINE</strong><small>No account · No network API</small></div></div>
+        </div>
+        <div class="workspace" id="workspace">
+          <div class="workspace-toolbar">
+            <div class="workspace-title"><span class="workspace-symbol">✳</span><div><strong>Redaction studio</strong><small>Text in. Safer text out.</small></div></div>
+            <div class="toolbar-right"><span class="live-status" id="live-status"><span></span> READY TO REVIEW</span><button type="button" id="load-example" class="button button-subtle">Load example</button><button type="button" id="clear-all" class="button button-outline">Clear all</button></div>
+          </div>
+          <div class="workspace-content">
+            <aside class="controls" aria-labelledby="controls-heading">
+              <div class="control-label"><span id="controls-heading">WHAT TO REDACT</span><small>Change anytime</small></div>
+              <label class="toggle-line"><span class="toggle-icon">⌘</span><span class="toggle-text"><strong>Credentials & tokens</strong><small>Keys, passwords, bearer tokens</small></span><input type="checkbox" data-option="credentials" checked><span class="switch" aria-hidden="true"></span></label>
+              <label class="toggle-line"><span class="toggle-icon">@</span><span class="toggle-text"><strong>Email addresses</strong><small>Addresses in messages</small></span><input type="checkbox" data-option="emails" checked><span class="switch" aria-hidden="true"></span></label>
+              <label class="toggle-line"><span class="toggle-icon">◉</span><span class="toggle-text"><strong>IP addresses</strong><small>IPv4 locations</small></span><input type="checkbox" data-option="addresses" checked><span class="switch" aria-hidden="true"></span></label>
+              <label class="toggle-line"><span class="toggle-icon">⌁</span><span class="toggle-text"><strong>Local user paths</strong><small>Home directory names</small></span><input type="checkbox" data-option="paths" checked><span class="switch" aria-hidden="true"></span></label>
+              <label class="toggle-line"><span class="toggle-icon">◇</span><span class="toggle-text"><strong>Payment cards</strong><small>Luhn-validated patterns</small></span><input type="checkbox" data-option="payments" checked><span class="switch" aria-hidden="true"></span></label>
+              <div class="custom-area"><label for="custom-terms">YOUR OWN TERMS</label><textarea id="custom-terms" rows="3" placeholder="One exact term per line" maxlength="2100" spellcheck="false"></textarea><small>Up to 20 literal words or phrases. Nothing is saved.</small></div>
+              <div class="aside-note"><span aria-hidden="true">ⓘ</span><p><strong>Not a security guarantee.</strong> Detection is heuristic. Always review the output manually; unknown secrets may remain.</p></div>
+            </aside>
+            <div class="editor-area">
+              <div class="editor-columns">
+                <div class="editor-panel"><div class="editor-heading"><span><span class="editor-bullet origin-bullet"></span> ORIGINAL TEXT</span><div class="editor-tools"><span id="input-count">0 characters</span><button type="button" id="hide-original" class="mini-button" aria-pressed="false">Hide</button></div></div><div class="input-wrap" id="input-wrap"><label class="sr-only" for="source-text">Text to redact</label><textarea id="source-text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste a log, stack trace, JSON snippet, or config here…" maxlength="1000000"></textarea><span id="drop-overlay" class="drop-overlay" hidden>Drop your text file here</span></div><div class="editor-footer"><button type="button" class="mini-link" id="open-file">↑ Import .txt / .log / .json</button><input type="file" id="file-input" accept=".txt,.log,.json,.md,.env,.yaml,.yml,text/plain,application/json" hidden><span>Max 1 MB of text</span></div></div>
+                <div class="editor-panel output-panel"><div class="editor-heading"><span><span class="editor-bullet output-bullet"></span> SANITIZED PREVIEW</span><div class="editor-tools"><span id="output-count">0 characters</span></div></div><label class="sr-only" for="result-text">Sanitized text preview</label><textarea id="result-text" class="result-text" readonly spellcheck="false" placeholder="Your redacted text will appear here automatically."></textarea><div class="editor-footer"><span id="output-label">Waiting for input</span><span class="output-safe">✳ On-device only</span></div></div>
+              </div>
+              <div class="analysis-bar"><div class="analysis-summary"><div class="summary-icon">◈</div><div><strong id="finding-total">0 patterns masked</strong><small id="finding-details">Paste text or try the example to begin.</small></div></div><div class="analysis-actions"><button type="button" class="button button-outline-dark" id="download-output" disabled>↓ Download .txt</button><button type="button" class="button button-coral" id="copy-output" disabled>Copy sanitized text <span aria-hidden="true">↗</span></button></div></div>
+            </div>
+          </div>
+        </div>
+        <p class="studio-disclaimer" role="note"><span>◎</span> Browser-based pattern matching can miss sensitive data or flag harmless text. Inspect the complete output before sharing it publicly. Redaction does not revoke a leaked credential.</p>
+        <div id="announce" class="sr-only" aria-live="polite"></div>
+      </section>
+
+      <section id="how-it-works" class="steps-section"><div class="steps-intro"><span class="eyebrow light-eyebrow">02 / HOW IT WORKS</span><h2>Three small steps.<br><em>One better habit.</em></h2><p>Make safe sharing part of your everyday workflow, without adding yet another account or app to manage.</p></div><div class="step-cards"><article class="step-card"><span class="step-number">01</span><div class="step-art code-art" aria-hidden="true"><span>&gt;_</span><i></i><i></i><i></i></div><h3>Drop in your context</h3><p>Paste text or import a log, markdown, or JSON file. Nothing is sent to a remote service.</p></article><article class="step-card"><span class="step-number">02</span><div class="step-art mask-art" aria-hidden="true"><span>····</span><span>██████</span><span>····</span></div><h3>Mask the sensitive bits</h3><p>Choose common patterns and add your own exact terms. Consistent placeholders keep the narrative legible.</p></article><article class="step-card"><span class="step-number">03</span><div class="step-art share-art" aria-hidden="true"><span>↗</span><i>✓</i></div><h3>Review. Then share.</h3><p>Read every line, then copy or download the cleaned text. You stay in control of what leaves your device.</p></article></div></section>
+
+      <section id="why-veiltide" class="bottom-banner"><div><span class="eyebrow">BUILT FOR PEOPLE WHO BUILD THINGS</span><h2>Make the fix visible.<br><em>Not your credentials.</em></h2><p>Made for debugging sessions, support tickets, docs, and everyday sharing. Simple enough to use when the pressure is on.</p><a class="button button-primary" href="#studio">Give it a try ↗</a></div><div class="banner-art" aria-hidden="true"><div class="banner-card"><span>BEFORE</span><div>api_key = <i class="danger-line"></i></div><div>user = <i class="danger-line short"></i></div><span class="banner-arrow">↘</span></div><div class="banner-card banner-after"><span>AFTER</span><div>api_key = <b>[CREDENTIAL_1]</b></div><div>user = <b>[EMAIL_1]</b></div><div class="small-check">✓ Ready for review</div></div></div></section>
+    </main>
+    <footer class="site-footer"><a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true">✳</span><span>veiltide<span class="brand-dot">.</span></span></a><p>Share the context. Keep the secrets.</p><div>Open source under the MIT license. <a href="https://github.com/Git-Deoloper/veiltide" rel="noopener noreferrer">Source ↗</a></div></footer>
+  </div>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

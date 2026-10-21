@@ -1,0 +1,47 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { redact, normalizeOptions, validCard, summarize, MAX_TEXT_LENGTH } from '../src/redact.js';
+const clean = (value,options) => redact(value,options).output;
+
+test('empty input is identity',()=>assert.equal(clean(''),''));
+test('preserves harmless log text',()=>assert.equal(clean('status=401 context=failure'), 'status=401 context=failure'));
+test('redacts emails',()=>assert.equal(clean('hi person@example.com'), 'hi [EMAIL_1]'));
+test('redacts emails case-insensitively with stable labels',()=>assert.equal(clean('a@demo.com A@DEMO.COM'),'[EMAIL_1] [EMAIL_1]'));
+test('redacts IPv4 addresses',()=>assert.equal(clean('host 203.0.113.42'), 'host [IP_1]'));
+test('ignores invalid IPv4',()=>assert.equal(clean('host 999.999.999.999'), 'host 999.999.999.999'));
+test('can disable IP masking',()=>assert.equal(clean('203.0.113.42',{addresses:false}), '203.0.113.42'));
+test('masks local Unix home usernames',()=>assert.equal(clean('/Users/someone/work.txt'), '/Users/[PATH_1]/work.txt'));
+test('masks Linux username',()=>assert.equal(clean('/home/another/project'), '/home/[PATH_1]/project'));
+test('masks Windows username',()=>assert.equal(clean('C:\\Users\\someone\\Docs'), 'C:\\Users\\[PATH_1]\\Docs'));
+test('detects assignment secrets',()=>assert.equal(clean('password=abc123Secret'), 'password=[CREDENTIAL_1]'));
+test('detects colon assignment',()=>assert.equal(clean('api_key: secretvalue123'), 'api_key: [CREDENTIAL_1]'));
+test('detects quoted JSON credentials',()=>assert.equal(clean('{"password":"verysecretvalue"}'), '{"password":"[CREDENTIAL_1]"}'));
+test('detects bearer token',()=>assert.equal(clean('Bearer really-long-token-012345'), 'Bearer [TOKEN_1]'));
+test('detects URL embedded password',()=>assert.equal(clean('postgres://user:supersecret@db.example.test/prod'), 'postgres://user:[CREDENTIAL_1]@db.example.test/prod'));
+test('detects private-key block',()=>assert.match(clean('-----BEGIN PRIVATE KEY-----\nEXAMPLEKEY\n-----END PRIVATE KEY-----'), /^\[PRIVATE_KEY_1\]$/));
+test('does not corrupt text around masking',()=>assert.equal(clean('before; foo@demo.com, after'), 'before; [EMAIL_1], after'));
+test('custom terms are interpreted literally not regex',()=>assert.equal(clean('a.b and aXb',{custom:['a.b']}),'[CUSTOM_1] and aXb'));
+test('repeats of a term get stable label',()=>assert.equal(clean('SecretWord SecretWord',{custom:['SecretWord']}),'[CUSTOM_1] [CUSTOM_1]'));
+test('higher-priority custom masking wins overlaps',()=>assert.equal(clean('x@example.com',{custom:['x@example.com']}),'[CUSTOM_1]'));
+test('payment card Luhn accepts test number',()=>assert.equal(validCard('4242 4242 4242 4242'),true));
+test('payment card Luhn rejects malformed value',()=>assert.equal(validCard('4242 4242 4242 4243'),false));
+test('masks Luhn-valid payment patterns',()=>assert.equal(clean('card 4242 4242 4242 4242'),'card [CARD_1]'));
+test('does not mask invalid card patterns',()=>assert.equal(clean('card 4242 4242 4242 4243'),'card 4242 4242 4242 4243'));
+test('input not mutated',()=>{const original='abc@demo.com';const out=redact(original);assert.equal(original,'abc@demo.com');assert.notEqual(out.output,original)});
+test('returns aggregate counts without raw values',()=>{const result=redact('x@demo.com and y@demo.com');assert.equal(result.total,2);assert.equal(result.distinct,2);assert.equal(result.counts.EMAIL,2);assert.doesNotMatch(JSON.stringify(result.counts), /demo\.com/)});
+test('description does not contain raw secrets',()=>assert.equal(summarize(redact('x@demo.com')),'EMAIL: 1 unique'));
+test('can disable email masking',()=>assert.equal(clean('x@demo.com',{emails:false}),'x@demo.com'));
+test('can disable credential masking',()=>assert.equal(clean('password=secretlong',{credentials:false}),'password=secretlong'));
+test('custom list validated',()=>assert.throws(()=>normalizeOptions({custom:['ab']}), /between 3 and 100/));
+test('rejects giant custom list',()=>assert.throws(()=>normalizeOptions({custom:Array(21).fill('abc')}),/Up to 20/));
+test('rejects excessive input',()=>assert.throws(()=>redact('x'.repeat(MAX_TEXT_LENGTH+1)),/exceeds/));
+test('non-text is rejected',()=>assert.throws(()=>redact({foo:1}),/Input must be text/));
+test('rejects null options',()=>assert.throws(()=>redact('hello',null),/Options must be/));
+
+test('large repeated data is handled without quadratic overlap scanning',()=>{
+ const input=Array.from({length:3500},(_,i)=>`test${i}@example.com`).join(' ');
+ const found=redact(input);
+ assert.equal(found.total,3500);
+ assert.equal(found.distinct,3500);
+ assert.ok(found.output.startsWith('[EMAIL_1]'));
+});
