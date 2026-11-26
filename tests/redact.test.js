@@ -18,6 +18,10 @@ test('detects colon assignment',()=>assert.equal(clean('api_key: secretvalue123'
 test('detects quoted JSON credentials',()=>assert.equal(clean('{"password":"verysecretvalue"}'), '{"password":"[CREDENTIAL_1]"}'));
 test('detects bearer token',()=>assert.equal(clean('Bearer really-long-token-012345'), 'Bearer [TOKEN_1]'));
 test('detects URL embedded password',()=>assert.equal(clean('postgres://user:supersecret@db.example.test/prod'), 'postgres://user:[CREDENTIAL_1]@db.example.test/prod'));
+test('URL password capture does not mask a repeated hostname substring instead',()=>assert.equal(clean('https://alice:supersecret@supersecret.example'), 'https://alice:[CREDENTIAL_1]@supersecret.example'));
+test('overlapping custom term cannot expose the rest of a detected credential',()=>assert.equal(clean('api_key=abcdefsecretXYZ',{custom:['secret']}), 'api_key=[CUSTOM_1]'));
+test('overlapping custom term masks a full detected email',()=>assert.equal(clean('private@example.com',{custom:['private']}), '[CUSTOM_1]'));
+test('case-sensitive credential values receive distinct labels',()=>assert.equal(clean('api_key=AbcdSecret api_key=abcdsecret api_key=AbcdSecret'), 'api_key=[CREDENTIAL_1] api_key=[CREDENTIAL_2] api_key=[CREDENTIAL_1]'));
 test('detects private-key block',()=>assert.match(clean('-----BEGIN PRIVATE KEY-----\nEXAMPLEKEY\n-----END PRIVATE KEY-----'), /^\[PRIVATE_KEY_1\]$/));
 test('does not corrupt text around masking',()=>assert.equal(clean('before; foo@demo.com, after'), 'before; [EMAIL_1], after'));
 test('custom terms are interpreted literally not regex',()=>assert.equal(clean('a.b and aXb',{custom:['a.b']}),'[CUSTOM_1] and aXb'));
