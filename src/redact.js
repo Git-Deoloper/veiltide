@@ -51,15 +51,16 @@ export function normalizeOptions(input = {}) {
 function escapeRegex(value) { return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 function addMatches(text, regex, type, priority, ranges, captureGroup = 0, validate = null) {
-  regex.lastIndex = 0;
+  // Capture indices identify the actual password even when the same text also
+  // appears later in the URL or assignment. Searching the full match is unsafe.
+  regex = new RegExp(regex.source, regex.flags.includes('d') ? regex.flags : `${regex.flags}d`);
   let match;
   while ((match = regex.exec(text)) !== null) {
     const value = match[captureGroup];
     if (!value) continue;
-    if (validate && !validate(value)) continue;
-    const offset = captureGroup ? match[0].lastIndexOf(value) : 0;
-    const start = match.index + offset;
-    ranges.push({ start, end: start + value.length, type, priority, value });
+    const [start, end] = match.indices[captureGroup];
+    if (validate && !validate(value, start, end)) continue;
+    ranges.push({ start, end, type, priority, value });
     if (regex.lastIndex === match.index) regex.lastIndex++;
   }
 }
@@ -84,6 +85,7 @@ export function redact(text, rawOptions = {}) {
   if (text.length > MAX_TEXT_LENGTH) throw new RangeError('Input exceeds 1,000,000 characters');
   const options = normalizeOptions(rawOptions);
   const ranges = [];
+  const urlPasswordPositions = new Uint8Array(text.length);
 
   if (options.credentials) {
     addMatches(text, /-----BEGIN (?:RSA |EC |OPENSSH |ENCRYPTED )?PRIVATE KEY-----[\s\S]{0,16000}?-----END (?:RSA |EC |OPENSSH |ENCRYPTED )?PRIVATE KEY-----/g, 'PRIVATE KEY', 100, ranges);
@@ -93,10 +95,14 @@ export function redact(text, rawOptions = {}) {
     addMatches(text, /\b(?:password|passwd|pwd|client_secret|api_key|access_token|secret_key|auth_token|private_token)\b\s*[:=]\s*["']?([^\s"',;}{]{4,})/gi, 'CREDENTIAL', 85, ranges, 1);
     addMatches(text, /["'](?:password|passwd|client_secret|api_key|access_token|secret_key|auth_token)["']\s*:\s*["']([^"'\r\n]{4,})["']/gi, 'CREDENTIAL', 85, ranges, 1);
     // Mask the password in a URL without hiding useful hostname and path information.
+    const firstUrlPassword = ranges.length;
     addMatches(text, /\b[a-z][a-z\d+.-]*:\/\/[^\s/@:]+:([^\s/@]+)@[^\s/]+/gi, 'CREDENTIAL', 88, ranges, 1);
+    for (const match of ranges.slice(firstUrlPassword)) urlPasswordPositions.fill(1, match.start, match.end);
   }
   if (options.emails) {
-    addMatches(text, /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,24}\b/gi, 'EMAIL', 40, ranges);
+    // The password@host portion of a URL is not a separate email address.
+    addMatches(text, /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,24}\b/gi, 'EMAIL', 40, ranges, 0,
+      (_value, start, end) => !urlPasswordPositions.subarray(start, end).includes(1));
   }
   if (options.addresses) {
     addMatches(text, /(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])/g, 'IP ADDRESS', 30, ranges, 0, candidate =>
@@ -112,18 +118,23 @@ export function redact(text, rawOptions = {}) {
     addMatches(text, new RegExp(escapeRegex(term), 'gi'), 'CUSTOM', 95, ranges);
   }
 
-  // Select non-overlapping ranges, prioritizing secrets over less-specific signals.
-  ranges.sort((a, b) => b.priority - a.priority || a.start - b.start || b.end - a.end);
+  // Preserve the full union of overlapping detections. A short custom term must
+  // never suppress masking the remainder of a longer credential or address.
+  ranges.sort((a, b) => a.start - b.start || b.end - a.end || b.priority - a.priority);
   const selected = [];
-  // A small byte-map bounds overlap resolution by input length, not quadratic
-  // comparisons against every earlier match on dense logs.
-  const occupied = new Uint8Array(text.length);
   for (const candidate of ranges) {
-    if (occupied.subarray(candidate.start, candidate.end).includes(1)) continue;
-    occupied.fill(1, candidate.start, candidate.end);
-    selected.push(candidate);
+    const previous = selected.at(-1);
+    if (previous && candidate.start < previous.end) {
+      previous.end = Math.max(previous.end, candidate.end);
+      if (candidate.priority > previous.priority) {
+        previous.type = candidate.type;
+        previous.priority = candidate.priority;
+      }
+      previous.value = text.slice(previous.start, previous.end);
+    } else {
+      selected.push({ ...candidate });
+    }
   }
-  selected.sort((a, b) => a.start - b.start);
 
   const counters = {};
   const replacements = new Map();
@@ -132,7 +143,8 @@ export function redact(text, rawOptions = {}) {
   let output = '';
   for (const match of selected) {
     output += text.slice(cursor, match.start);
-    const key = `${match.type}\0${match.value.toLowerCase()}`;
+    const value = ['EMAIL', 'CUSTOM'].includes(match.type) ? match.value.toLowerCase() : match.value;
+    const key = `${match.type}\0${value}`;
     let tag = replacements.get(key);
     if (!tag) {
       const name = LABELS[match.type];

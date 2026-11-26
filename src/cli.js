@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, stat } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { StringDecoder } from 'node:string_decoder';
 import { redact, summarize, MAX_TEXT_LENGTH } from './redact.js';
 
 const HELP = `veiltide — Redact common secrets and identifiers locally
@@ -48,7 +51,16 @@ export async function main(args = process.argv.slice(2), deps = {}) {
     else if (!file) file = arg;
     else throw new Error('Specify only one input file');
   }
-  if (file && outputPath && file === outputPath) throw new Error('Refusing to overwrite input file');
+  if (file && file !== '-' && outputPath) {
+    if (resolve(file) === resolve(outputPath)) throw new Error('Refusing to overwrite input file');
+    // Existing symlinks and hard links can also name the input file.
+    const inputStat = await stat(file);
+    let outputStat;
+    try { outputStat = await stat(outputPath); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (outputStat && inputStat.dev === outputStat.dev && inputStat.ino === outputStat.ino) {
+      throw new Error('Refusing to overwrite input file');
+    }
+  }
   if (!file && stdin.isTTY) throw new Error('Provide a file or pipe text to stdin');
   let input;
   if (file && file !== '-') {
@@ -56,12 +68,14 @@ export async function main(args = process.argv.slice(2), deps = {}) {
   } else {
     let parts = [];
     let length = 0;
+    const decoder = new StringDecoder('utf8');
     for await (const part of stdin) {
-      const stringPart = typeof part === 'string' ? part : part.toString('utf8');
+      const stringPart = typeof part === 'string' ? decoder.end() + part : decoder.write(part);
       length += stringPart.length;
       if (length > MAX_TEXT_LENGTH) throw new RangeError('Input too large');
       parts.push(stringPart);
     }
+    parts.push(decoder.end());
     input = parts.join('');
   }
   const result = redact(input, opts);
@@ -75,6 +89,6 @@ export async function main(args = process.argv.slice(2), deps = {}) {
   return 0;
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(error => { process.stderr.write(`veiltide: ${error.message}\n`); process.exitCode = 1; });
 }
